@@ -6,7 +6,7 @@ A custom content management system for managing and publishing articles about th
 
 - **Frontend:** React, TypeScript, Vite
 - **Backend:** Node.js (framework TBD)
-- **Database:** PostgreSQL
+- **Database:** Netlify Database (managed PostgreSQL)
 - **Rich Text Editor:** Plate UI
 - **API:** REST, documented using OpenAPI
 
@@ -25,7 +25,12 @@ A custom content management system for managing and publishing articles about th
 - [Database Schema](src/docs/database-schema.md)
 - [SQL Table Definitions](src/docs/sql/01_create_tables.md)
 - [OpenAPI Specification](src/docs/openapi.yaml)
+- [Netlify Database Setup](src/docs/netlify-database.md)
 
 ## Project Status
 
 Under development as part of a full-stack mentoring project.
+
+## Publishing states
+
+Active draft: `status=draft`, `publishedAt=null`. Active published: `status=published`, `publishedAt` is the first publication time in the current activation cycle. Inactive: `status=null`, `publishedAt=null`. Backend updates `updated_at`.
