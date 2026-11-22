@@ -1,8 +1,9 @@
 openapi: 3.1.1
 info:
   title: Custom CMS API — Mentoring Contract Draft
-  version: 0.6.4
-  description: 'Framework-independent API contract for a React/TypeScript CMS with a Node.js backend.
+  version: 0.6.5
+  description:
+    "Framework-independent API contract for a React/TypeScript CMS with a Node.js backend.
 
 
     Mentor-agreed updates (2026-11-08): GET CMS articles accepts limit (default 10; clamps requests below 5 to 5 and above 100 to 100), returns articles instead of items and pageSize as the applied size; default sort newest; list returns 200 even with no matches. Create/update requests use unwrapped article properties with a nested preview and desired draft/published status. Backend generates article ID, timestamps and initial isActive. Article and preview are stored/published atomically. DELETE deactivates and clears status and publishedAt; PATCH on /{id} restores status=draft and isActive=true while publishedAt stays null. Categories use integer IDs; protected Unknown category is -1. Hero banners use corresponding create/update and restore conventions. Media is registered by external URL, not uploaded as binary through the CMS API; media ID/fileName/mediaType/url are returned. Public media is readable by ID.
@@ -22,30 +23,30 @@ info:
 
     Updates in v0.6.0 (2026-11-15): PATCH restore paths are now /api/cms/articles/{id} and /api/cms/hero-banners/{id}; request remains RestoreRequest, response returns a flat full Article or HeroBanner without an envelope. Inactive resources have status=null and publishedAt=null; restore sets status=draft, isActive=true, publishedAt=null. Publishing sets publishedAt once per activation cycle; subsequent edits/publishes preserve it. When publishing a new banner, the previously visible banner is atomically deactivated and its status and publishedAt cleared. Category.isSystem is required. VARCHAR-aligned string limits are specified via maxLength. Pagination, PlateContent, and unrelated routes remain unchanged.
 
-    '
+    "
   x-open-questions:
-  - Backend framework is not selected; PostgreSQL is the planned database.
-  - External media provider (Firebase or another) and URL trust/access policy not selected.
-  - 'Media ID generation: proposed backend-generated identifier; confirm with mentor.'
-  - Media URL and format/size rules, provider validation and whether remote URL can be deleted are unresolved.
-  - Error JSON details remain provisional (ErrorDraft schema); codes limited to 200/201/400/404 where applicable.
-  - Plate editor JSON node/block structure remains intentionally open and unchanged.
-  - Whether article-slug changes should trigger frontend canonical navigation is open; redirects explicitly not required.
-  - For media still referenced by content, a rejected deletion uses 400 under agreed code set; error body is provisional.
-  - Empty public hero banner response is 200 with null banner instead of 204 to match agreed status-code set; confirm with mentor if desired.
-  - Exact implementation of Unicode case-insensitive author name uniqueness and whitespace normalization is database-specific; contract requires trimming and case-insensitive comparison.
+    - Backend framework is not selected; PostgreSQL is the planned database.
+    - External media provider (Firebase or another) and URL trust/access policy not selected.
+    - "Media ID generation: proposed backend-generated identifier; confirm with mentor."
+    - Media URL and format/size rules, provider validation and whether remote URL can be deleted are unresolved.
+    - Error JSON details remain provisional (ErrorDraft schema); codes limited to 200/201/400/404 where applicable.
+    - Plate editor JSON node/block structure remains intentionally open and unchanged.
+    - Whether article-slug changes should trigger frontend canonical navigation is open; redirects explicitly not required.
+    - For media still referenced by content, a rejected deletion uses 400 under agreed code set; error body is provisional.
+    - Empty public hero banner response is 200 with null banner instead of 204 to match agreed status-code set; confirm with mentor if desired.
+    - Exact implementation of Unicode case-insensitive author name uniqueness and whitespace normalization is database-specific; contract requires trimming and case-insensitive comparison.
 servers:
-- url: http://localhost:8080
-  description: Example local development server; address/port to confirm
-  x-design-status: proposed
+  - url: http://localhost:8080
+    description: Example local development server; address/port to confirm
+    x-design-status: proposed
 security: []
 tags:
-- name: CMS Articles
-- name: CMS Categories
-- name: CMS Authors
-- name: CMS Hero Banners
-- name: CMS Media
-- name: Public Content
+  - name: CMS Articles
+  - name: CMS Categories
+  - name: CMS Authors
+  - name: CMS Hero Banners
+  - name: CMS Media
+  - name: Public Content
 components:
   parameters:
     ArticleId:
@@ -116,21 +117,22 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/ErrorDraft'
+            $ref: "#/components/schemas/ErrorDraft"
       x-design-status: proposed
     NotFound:
       description: Resource not found; exact JSON error response pending mentor discussion
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/ErrorDraft'
+            $ref: "#/components/schemas/ErrorDraft"
       x-design-status: proposed
   schemas:
     ArticleStatus:
       type: string
       enum:
-      - draft
-      - published
+        - draft
+        - published
+      minLength: 1
       maxLength: 20
     PlateContent:
       description: Structured Plate editor JSON. Exact node types and custom blocks must be finalized from the chosen Plate configuration.
@@ -146,10 +148,10 @@ components:
           type: integer
           description: Numeric article ID used in /articles/{id}-{slug}.
         content:
-          $ref: '#/components/schemas/PlateContent'
+          $ref: "#/components/schemas/PlateContent"
       required:
-      - imageId
-      - content
+        - imageId
+        - content
     Article:
       description: Article with its distinct preview; both saved and published atomically. Backend-generated identifier, timestamps and activation flag on create. Author attribution is stored as authorId (numeric reference to Author). An inactive record has status=null and publishedAt=null. Only an active published record has publishedAt set.
       type: object
@@ -159,10 +161,12 @@ components:
           description: Numeric article ID used in /articles/{id}-{slug}.
         title:
           type: string
+          minLength: 1
           maxLength: 255
         slug:
           type: string
           description: Globally unique across all articles, including inactive records; slug changes do not create redirects. Used in the React URL /articles/{id}-{slug}; API lookup uses ID.
+          minLength: 1
           maxLength: 255
         authorId:
           type: integer
@@ -174,20 +178,20 @@ components:
           type: integer
           description: Numeric media ID referencing an item in the Media Library.
         content:
-          $ref: '#/components/schemas/PlateContent'
+          $ref: "#/components/schemas/PlateContent"
         preview:
-          $ref: '#/components/schemas/ArticlePreview'
+          $ref: "#/components/schemas/ArticlePreview"
         status:
           oneOf:
-          - $ref: '#/components/schemas/ArticleStatus'
-          - type: 'null'
+            - $ref: "#/components/schemas/ArticleStatus"
+            - type: "null"
           description: Null if inactive; draft or published only when isActive=true.
         isActive:
           type: boolean
         publishedAt:
           type:
-          - string
-          - 'null'
+            - string
+            - "null"
           format: date-time
           description: First publication time in current activation cycle; null for draft or inactive content. Unchanged by further Publish updates; cleared on deactivation.
         createdAt:
@@ -197,28 +201,30 @@ components:
           type: string
           format: date-time
       required:
-      - id
-      - title
-      - slug
-      - authorId
-      - categoryId
-      - mainImageId
-      - content
-      - preview
-      - status
-      - isActive
-      - createdAt
-      - updatedAt
-      - publishedAt
+        - id
+        - title
+        - slug
+        - authorId
+        - categoryId
+        - mainImageId
+        - content
+        - preview
+        - status
+        - isActive
+        - createdAt
+        - updatedAt
+        - publishedAt
     ArticleInput:
       description: Complete article + embedded preview with desired status (draft or published). Same mandatory fields for both. Backend generates id, createdAt, updatedAt and isActive on creation. mainImageId is required even for drafts. Author is selected using numeric authorId, not free-text author.
       type: object
       properties:
         title:
           type: string
+          minLength: 1
           maxLength: 255
         slug:
           type: string
+          minLength: 1
           maxLength: 255
         authorId:
           type: integer
@@ -230,20 +236,20 @@ components:
           type: integer
           description: Numeric media ID referencing an item in the Media Library.
         content:
-          $ref: '#/components/schemas/PlateContent'
+          $ref: "#/components/schemas/PlateContent"
         preview:
-          $ref: '#/components/schemas/ArticlePreview'
+          $ref: "#/components/schemas/ArticlePreview"
         status:
-          $ref: '#/components/schemas/ArticleStatus'
+          $ref: "#/components/schemas/ArticleStatus"
       required:
-      - title
-      - slug
-      - authorId
-      - categoryId
-      - mainImageId
-      - content
-      - preview
-      - status
+        - title
+        - slug
+        - authorId
+        - categoryId
+        - mainImageId
+        - content
+        - preview
+        - status
     Category:
       type: object
       properties:
@@ -252,22 +258,24 @@ components:
           description: Numeric category ID; -1 is the protected Unknown category.
         name:
           type: string
+          minLength: 1
           maxLength: 255
         isSystem:
           type: boolean
           description: True for protected Unknown category; proposed response field.
       required:
-      - id
-      - name
-      - isSystem
+        - id
+        - name
+        - isSystem
     CategoryInput:
       type: object
       properties:
         name:
           type: string
+          minLength: 1
           maxLength: 255
       required:
-      - name
+        - name
     HeroBanner:
       type: object
       properties:
@@ -278,18 +286,18 @@ components:
           type: integer
           description: Numeric article ID used in /articles/{id}-{slug}.
         content:
-          $ref: '#/components/schemas/PlateContent'
+          $ref: "#/components/schemas/PlateContent"
         status:
           oneOf:
-          - $ref: '#/components/schemas/ArticleStatus'
-          - type: 'null'
+            - $ref: "#/components/schemas/ArticleStatus"
+            - type: "null"
           description: Null if inactive; draft or published only when isActive=true.
         isActive:
           type: boolean
         publishedAt:
           type:
-          - string
-          - 'null'
+            - string
+            - "null"
           format: date-time
           description: First publication time in current activation cycle; null for draft or inactive content. Unchanged by further Publish updates; cleared on deactivation.
         createdAt:
@@ -299,12 +307,12 @@ components:
           type: string
           format: date-time
       required:
-      - id
-      - imageId
-      - content
-      - status
-      - isActive
-      - publishedAt
+        - id
+        - imageId
+        - content
+        - status
+        - isActive
+        - publishedAt
       description: An inactive record has status=null and publishedAt=null. Only an active published record has publishedAt set.
     HeroBannerInput:
       type: object
@@ -313,13 +321,13 @@ components:
           type: integer
           description: Numeric article ID used in /articles/{id}-{slug}.
         content:
-          $ref: '#/components/schemas/PlateContent'
+          $ref: "#/components/schemas/PlateContent"
         status:
-          $ref: '#/components/schemas/ArticleStatus'
+          $ref: "#/components/schemas/ArticleStatus"
       required:
-      - imageId
-      - content
-      - status
+        - imageId
+        - content
+        - status
       description: Status selected via Save draft or Publish. Backend generates id, timestamps and isActive on creation.
     Media:
       type: object
@@ -329,24 +337,27 @@ components:
           description: Backend-generated numeric media identifier.
         fileName:
           type: string
+          minLength: 1
           maxLength: 255
         mediaType:
           type: string
           enum:
-          - image
-          - video
-          - audio
+            - image
+            - video
+            - audio
+          minLength: 1
           maxLength: 20
         url:
           type: string
           format: uri
           description: External provider URL supplied through Add New Media form.
+          minLength: 1
           maxLength: 2048
       required:
-      - id
-      - fileName
-      - mediaType
-      - url
+        - id
+        - fileName
+        - mediaType
+        - url
       additionalProperties: false
     PublicArticleCard:
       type: object
@@ -357,9 +368,11 @@ components:
         slug:
           type: string
           description: Current article slug for generating the public URL /articles/{id}-{slug}, not an API lookup key.
+          minLength: 1
           maxLength: 255
         title:
           type: string
+          minLength: 1
           maxLength: 255
         authorId:
           type: integer
@@ -367,22 +380,23 @@ components:
         authorName:
           type: string
           description: Resolved author display name, including Unknown if authorId=-1.
+          minLength: 1
           maxLength: 255
         category:
-          $ref: '#/components/schemas/Category'
+          $ref: "#/components/schemas/Category"
         mainImageId:
           type: integer
           description: Numeric article ID used in /articles/{id}-{slug}.
         preview:
-          $ref: '#/components/schemas/ArticlePreview'
+          $ref: "#/components/schemas/ArticlePreview"
       required:
-      - articleId
-      - slug
-      - title
-      - authorId
-      - category
-      - preview
-      - authorName
+        - articleId
+        - slug
+        - title
+        - authorId
+        - category
+        - preview
+        - authorName
       description: Data for one public homepage card. All cards represent active published articles; preview content and image are independent of the full article.
     PageArticles:
       type: object
@@ -390,7 +404,7 @@ components:
         articles:
           type: array
           items:
-            $ref: '#/components/schemas/Article'
+            $ref: "#/components/schemas/Article"
         total:
           type: integer
           minimum: 0
@@ -403,10 +417,10 @@ components:
           maximum: 100
           description: Effective per-page limit, after clamping the requested limit to [5, 100].
       required:
-      - articles
-      - total
-      - page
-      - pageSize
+        - articles
+        - total
+        - page
+        - pageSize
       description: Default limit 10; minimum effective limit 5, maximum effective limit 100. An empty result set returns the array as [] and total=0 with HTTP 200.
     PageBanners:
       type: object
@@ -414,7 +428,7 @@ components:
         banners:
           type: array
           items:
-            $ref: '#/components/schemas/HeroBanner'
+            $ref: "#/components/schemas/HeroBanner"
         total:
           type: integer
           minimum: 0
@@ -427,10 +441,10 @@ components:
           maximum: 100
           description: Effective per-page limit, after clamping the requested limit to [5, 100].
       required:
-      - banners
-      - total
-      - page
-      - pageSize
+        - banners
+        - total
+        - page
+        - pageSize
       description: Default limit 10; minimum effective limit 5, maximum effective limit 100. An empty result set returns the array as [] and total=0 with HTTP 200. The response array is named banners.
     PageMedia:
       type: object
@@ -438,7 +452,7 @@ components:
         media:
           type: array
           items:
-            $ref: '#/components/schemas/Media'
+            $ref: "#/components/schemas/Media"
         total:
           type: integer
           minimum: 0
@@ -451,10 +465,10 @@ components:
           maximum: 100
           description: Effective per-page limit, after clamping the requested limit to [5, 100].
       required:
-      - media
-      - total
-      - page
-      - pageSize
+        - media
+        - total
+        - page
+        - pageSize
       description: Default limit 10; minimum effective limit 5, maximum effective limit 100. An empty result set returns the array as [] and total=0 with HTTP 200.
     PagePublicArticleCards:
       type: object
@@ -462,7 +476,7 @@ components:
         articles:
           type: array
           items:
-            $ref: '#/components/schemas/PublicArticleCard'
+            $ref: "#/components/schemas/PublicArticleCard"
         total:
           type: integer
           minimum: 0
@@ -475,10 +489,10 @@ components:
           maximum: 100
           description: Effective per-page limit, after clamping the requested limit to [5, 100].
       required:
-      - articles
-      - total
-      - page
-      - pageSize
+        - articles
+        - total
+        - page
+        - pageSize
       description: Homepage cards, ordered by newest published first. Pagination is applied after optional category filtering. Default limit 10; minimum effective limit 5, maximum effective limit 100. An empty result set returns the array as [] and total=0 with HTTP 200.
     ErrorDraft:
       description: Placeholder error contract, NOT approved; RFC 9457 is an option.
@@ -490,14 +504,14 @@ components:
           type: string
           description: Proposed; exact error format to discuss with mentor.
       required:
-      - message
+        - message
     ArticleEnvelope:
       type: object
       properties:
         article:
-          $ref: '#/components/schemas/Article'
+          $ref: "#/components/schemas/Article"
       required:
-      - article
+        - article
       additionalProperties: false
     RestoreRequest:
       type: object
@@ -509,39 +523,42 @@ components:
           type: boolean
           const: true
       required:
-      - status
-      - isActive
+        - status
+        - isActive
       additionalProperties: false
       description: Restore inactive resource to active draft. Backend clears publishedAt to null; all other content fields remain unchanged.
     HeroBannerEnvelope:
       type: object
       properties:
         banner:
-          $ref: '#/components/schemas/HeroBanner'
+          $ref: "#/components/schemas/HeroBanner"
       required:
-      - banner
+        - banner
       additionalProperties: false
     MediaInput:
       type: object
       properties:
         fileName:
           type: string
+          minLength: 1
           maxLength: 255
         mediaType:
           type: string
           enum:
-          - image
-          - video
-          - audio
+            - image
+            - video
+            - audio
+          minLength: 1
           maxLength: 20
         url:
           type: string
           format: uri
+          minLength: 1
           maxLength: 2048
       required:
-      - fileName
-      - mediaType
-      - url
+        - fileName
+        - mediaType
+        - url
       additionalProperties: false
       description: Media ID provisionally generated by backend; confirm with mentor. No binary upload to this endpoint.
     Author:
@@ -556,8 +573,8 @@ components:
           description: Author name. Trim leading/trailing whitespace before persisting and checking uniqueness; reject names that compare equal ignoring case after trimming.
           maxLength: 255
       required:
-      - id
-      - name
+        - id
+        - name
     AuthorInput:
       type: object
       properties:
@@ -567,75 +584,75 @@ components:
           description: Author name. Trim leading/trailing whitespace before persisting and checking uniqueness; reject names that compare equal ignoring case after trimming.
           maxLength: 255
       required:
-      - name
+        - name
       additionalProperties: false
     PublicArticleDetail:
       description: Published active Article fields plus a resolved authorName for public rendering.
       allOf:
-      - $ref: '#/components/schemas/Article'
-      - type: object
-        properties:
-          authorName:
-            type: string
-            description: Display name resolved from authorId.
-        required:
-        - authorName
+        - $ref: "#/components/schemas/Article"
+        - type: object
+          properties:
+            authorName:
+              type: string
+              description: Display name resolved from authorId.
+          required:
+            - authorName
 paths:
   /api/cms/articles:
     get:
       tags:
-      - CMS Articles
+        - CMS Articles
       operationId: listCmsArticles
       summary: List articles, including drafts and inactive
       parameters:
-      - $ref: '#/components/parameters/Page'
-      - $ref: '#/components/parameters/Limit'
-      - name: status
-        in: query
-        schema:
-          $ref: '#/components/schemas/ArticleStatus'
-      - name: isActive
-        in: query
-        schema:
-          type: boolean
-      - name: categoryId
-        in: query
-        schema:
-          type: integer
-          description: Numeric category ID; -1 is the protected Unknown category.
-      - name: fromDate
-        in: query
-        schema:
-          type: string
-          format: date
-      - name: toDate
-        in: query
-        schema:
-          type: string
-          format: date
-      - name: sort
-        in: query
-        schema:
-          type: string
-          enum:
-          - newest
-          - oldest
-          default: newest
-        description: Sort order; defaults to newest.
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/Limit"
+        - name: status
+          in: query
+          schema:
+            $ref: "#/components/schemas/ArticleStatus"
+        - name: isActive
+          in: query
+          schema:
+            type: boolean
+        - name: categoryId
+          in: query
+          schema:
+            type: integer
+            description: Numeric category ID; -1 is the protected Unknown category.
+        - name: fromDate
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: toDate
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: sort
+          in: query
+          schema:
+            type: string
+            enum:
+              - newest
+              - oldest
+            default: newest
+          description: Sort order; defaults to newest.
       responses:
-        '200':
+        "200":
           description: Success
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PageArticles'
-        '400':
-          $ref: '#/components/responses/BadRequest'
+                $ref: "#/components/schemas/PageArticles"
+        "400":
+          $ref: "#/components/responses/BadRequest"
       x-design-status: proposed
-      description: ' Pagination uses optional limit (default=10, clamp to [5,100]) and 1-based page (default=1). Empty list returns HTTP 200 with an empty array.'
+      description: " Pagination uses optional limit (default=10, clamp to [5,100]) and 1-based page (default=1). Empty list returns HTTP 200 with an empty array."
     post:
       tags:
-      - CMS Articles
+        - CMS Articles
       operationId: createArticle
       summary: Create article and preview together as draft or published
       description: Complete article payload with preview and status. The backend derives Save draft vs Publish from status. Article and preview are saved/published atomically. Published articles cannot be downgraded to draft through PUT; only active articles may be edited. For a new draft, publishedAt=null; initial Publish sets publishedAt to the current timestamp.
@@ -644,101 +661,101 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ArticleInput'
+              $ref: "#/components/schemas/ArticleInput"
       responses:
-        '201':
+        "201":
           description: Article and preview saved together; backend sets generated fields on creation.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Article'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
+                $ref: "#/components/schemas/Article"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
       x-design-status: proposed
   /api/cms/articles/{id}:
     get:
       tags:
-      - CMS Articles
+        - CMS Articles
       operationId: getCmsArticle
       summary: Get article with preview for editing
       parameters:
-      - $ref: '#/components/parameters/ArticleId'
+        - $ref: "#/components/parameters/ArticleId"
       responses:
-        '200':
+        "200":
           description: Success
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Article'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
+                $ref: "#/components/schemas/Article"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
       x-design-status: proposed
     put:
       tags:
-      - CMS Articles
+        - CMS Articles
       operationId: updateArticle
       summary: Update full article and preview together
       description: Complete article payload with preview and status. The backend derives Save draft vs Publish from status. Article and preview are saved/published atomically. Published articles cannot be downgraded to draft through PUT; only active articles may be edited. Publishing an already published active record preserves its publishedAt timestamp.
       parameters:
-      - $ref: '#/components/parameters/ArticleId'
+        - $ref: "#/components/parameters/ArticleId"
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ArticleInput'
+              $ref: "#/components/schemas/ArticleInput"
       responses:
-        '200':
+        "200":
           description: Article and preview saved together; backend sets generated fields on creation.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Article'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
+                $ref: "#/components/schemas/Article"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
       x-design-status: proposed
     patch:
       tags:
-      - CMS Articles
+        - CMS Articles
       operationId: restoreArticle
       summary: Reactivate article as draft
       description: Sets isActive=true and status=draft for entire article+preview publication unit. Article must be active before editing. Response is the complete flat resource, not wrapped. publishedAt is null on restoration.
       parameters:
-      - $ref: '#/components/parameters/ArticleId'
+        - $ref: "#/components/parameters/ArticleId"
       responses:
-        '200':
+        "200":
           description: Complete, flat article restored as active draft (status=draft, publishedAt=null).
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Article'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
+                $ref: "#/components/schemas/Article"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
       x-design-status: proposed
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/RestoreRequest'
+              $ref: "#/components/schemas/RestoreRequest"
     delete:
       tags:
-      - CMS Articles
+        - CMS Articles
       operationId: deactivateArticle
       summary: Soft-delete article and hide its preview
       description: Retains article and preview data. Public endpoints never expose inactive articles. Deactivation sets isActive=false, status=null, publishedAt=null.
       parameters:
-      - $ref: '#/components/parameters/ArticleId'
+        - $ref: "#/components/parameters/ArticleId"
       responses:
-        '200':
+        "200":
           description: Article set to isActive=false, preview hidden
           content:
             application/json:
@@ -749,33 +766,33 @@ paths:
                     type: boolean
                     const: true
                 required:
-                - success
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
+                  - success
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
       x-design-status: proposed
   /api/cms/categories:
     get:
       tags:
-      - CMS Categories
+        - CMS Categories
       operationId: listCategories
       summary: List categories including Unknown
       responses:
-        '200':
+        "200":
           description: Categories
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Category'
-        '400':
-          $ref: '#/components/responses/BadRequest'
+                  $ref: "#/components/schemas/Category"
+        "400":
+          $ref: "#/components/responses/BadRequest"
       x-design-status: proposed
     post:
       tags:
-      - CMS Categories
+        - CMS Categories
       operationId: createCategory
       summary: Create category (no slug)
       requestBody:
@@ -783,56 +800,56 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CategoryInput'
+              $ref: "#/components/schemas/CategoryInput"
       responses:
-        '201':
+        "201":
           description: Success
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Category'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
+                $ref: "#/components/schemas/Category"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
       x-design-status: proposed
   /api/cms/categories/{id}:
     put:
       tags:
-      - CMS Categories
+        - CMS Categories
       operationId: updateCategory
       summary: Rename category
       description: Protected Unknown category cannot be renamed.
       parameters:
-      - $ref: '#/components/parameters/CategoryId'
+        - $ref: "#/components/parameters/CategoryId"
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CategoryInput'
+              $ref: "#/components/schemas/CategoryInput"
       responses:
-        '200':
+        "200":
           description: Success
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Category'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
+                $ref: "#/components/schemas/Category"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
       x-design-status: proposed
     delete:
       tags:
-      - CMS Categories
+        - CMS Categories
       operationId: deleteCategory
       summary: Delete category and reassign its articles to Unknown
       description: Unknown category cannot be deleted. Reassignment and deletion should be one atomic operation.
       parameters:
-      - $ref: '#/components/parameters/CategoryId'
+        - $ref: "#/components/parameters/CategoryId"
       responses:
-        '200':
+        "200":
           description: Category deleted; affected articles reassigned to Unknown
           content:
             application/json:
@@ -843,33 +860,33 @@ paths:
                     type: boolean
                     const: true
                 required:
-                - success
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
+                  - success
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
       x-design-status: proposed
   /api/cms/authors:
     get:
       tags:
-      - CMS Authors
+        - CMS Authors
       operationId: listAuthors
       summary: List authors including protected Unknown (no pagination)
       responses:
-        '200':
+        "200":
           description: Unpaginated author list
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Author'
-        '400':
-          $ref: '#/components/responses/BadRequest'
+                  $ref: "#/components/schemas/Author"
+        "400":
+          $ref: "#/components/responses/BadRequest"
       x-design-status: proposed
     post:
       tags:
-      - CMS Authors
+        - CMS Authors
       operationId: createAuthor
       summary: Create author
       requestBody:
@@ -877,55 +894,55 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AuthorInput'
+              $ref: "#/components/schemas/AuthorInput"
       responses:
-        '201':
+        "201":
           description: Success
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Author'
-        '400':
-          $ref: '#/components/responses/BadRequest'
+                $ref: "#/components/schemas/Author"
+        "400":
+          $ref: "#/components/responses/BadRequest"
       x-design-status: proposed
       description: Trim surrounding whitespace and enforce case-insensitive uniqueness; duplicate or blank name is a validation error (400).
   /api/cms/authors/{id}:
     put:
       tags:
-      - CMS Authors
+        - CMS Authors
       operationId: updateAuthor
       summary: Rename author
       description: Protected Unknown author (id=-1) cannot be renamed. Trim surrounding whitespace and enforce case-insensitive uniqueness; invalid/duplicate names return 400.
       parameters:
-      - $ref: '#/components/parameters/AuthorId'
+        - $ref: "#/components/parameters/AuthorId"
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AuthorInput'
+              $ref: "#/components/schemas/AuthorInput"
       responses:
-        '200':
+        "200":
           description: Success
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Author'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
+                $ref: "#/components/schemas/Author"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
       x-design-status: proposed
     delete:
       tags:
-      - CMS Authors
+        - CMS Authors
       operationId: deleteAuthor
       summary: Delete author and reassign their articles to Unknown
       description: Protected Unknown author (id=-1) cannot be deleted. Reassign all articles referencing the deleted author to authorId=-1 and delete the author in one atomic database operation.
       parameters:
-      - $ref: '#/components/parameters/AuthorId'
+        - $ref: "#/components/parameters/AuthorId"
       responses:
-        '200':
+        "200":
           description: Author deleted and affected articles reassigned to Unknown
           content:
             application/json:
@@ -936,53 +953,53 @@ paths:
                     type: boolean
                     const: true
                 required:
-                - success
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
+                  - success
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
       x-design-status: proposed
   /api/cms/hero-banners:
     get:
       tags:
-      - CMS Hero Banners
+        - CMS Hero Banners
       operationId: listBanners
       summary: List banners by active state and status
       parameters:
-      - $ref: '#/components/parameters/Page'
-      - $ref: '#/components/parameters/Limit'
-      - name: isActive
-        in: query
-        schema:
-          type: boolean
-      - name: status
-        in: query
-        schema:
-          $ref: '#/components/schemas/ArticleStatus'
-      - name: fromDate
-        in: query
-        schema:
-          type: string
-          format: date
-      - name: toDate
-        in: query
-        schema:
-          type: string
-          format: date
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/Limit"
+        - name: isActive
+          in: query
+          schema:
+            type: boolean
+        - name: status
+          in: query
+          schema:
+            $ref: "#/components/schemas/ArticleStatus"
+        - name: fromDate
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: toDate
+          in: query
+          schema:
+            type: string
+            format: date
       responses:
-        '200':
+        "200":
           description: Success
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PageBanners'
-        '400':
-          $ref: '#/components/responses/BadRequest'
+                $ref: "#/components/schemas/PageBanners"
+        "400":
+          $ref: "#/components/responses/BadRequest"
       x-design-status: proposed
-      description: ' Pagination uses optional limit (default=10, clamp to [5,100]) and 1-based page (default=1). Empty list returns HTTP 200 with an empty array.'
+      description: " Pagination uses optional limit (default=10, clamp to [5,100]) and 1-based page (default=1). Empty list returns HTTP 200 with an empty array."
     post:
       tags:
-      - CMS Hero Banners
+        - CMS Hero Banners
       operationId: createBanner
       summary: Create new banner as draft or publish immediately
       description: The banner status indicates Save draft or Publish. Published active banners can be updated only by Publish. Publishing a new banner atomically deactivates the old displayed banner. For a new draft, publishedAt=null; initial Publish sets publishedAt to the current timestamp. The replaced published banner becomes isActive=false, status=null, publishedAt=null within the same transaction.
@@ -991,100 +1008,100 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/HeroBannerInput'
+              $ref: "#/components/schemas/HeroBannerInput"
       responses:
-        '201':
+        "201":
           description: Success
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/HeroBanner'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
+                $ref: "#/components/schemas/HeroBanner"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
       x-design-status: proposed
   /api/cms/hero-banners/{id}:
     get:
       tags:
-      - CMS Hero Banners
+        - CMS Hero Banners
       operationId: getBanner
       summary: Get banner for editing
       parameters:
-      - $ref: '#/components/parameters/BannerId'
+        - $ref: "#/components/parameters/BannerId"
       responses:
-        '200':
+        "200":
           description: Success
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/HeroBanner'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
+                $ref: "#/components/schemas/HeroBanner"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
       x-design-status: proposed
     put:
       tags:
-      - CMS Hero Banners
+        - CMS Hero Banners
       operationId: updateBanner
       summary: Update banner as draft or publish
       description: The banner status indicates Save draft or Publish. Published active banners can be updated only by Publish. Publishing a new banner atomically deactivates the old displayed banner. Publishing an already published active record preserves its publishedAt timestamp. If another banner was visible, it is atomically deactivated with status=null and publishedAt=null.
       parameters:
-      - $ref: '#/components/parameters/BannerId'
+        - $ref: "#/components/parameters/BannerId"
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/HeroBannerInput'
+              $ref: "#/components/schemas/HeroBannerInput"
       responses:
-        '200':
+        "200":
           description: Success
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/HeroBanner'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
+                $ref: "#/components/schemas/HeroBanner"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
       x-design-status: proposed
     patch:
       tags:
-      - CMS Hero Banners
+        - CMS Hero Banners
       operationId: restoreBanner
       summary: Reactivate hero banner as draft
       description: Sets isActive=true and status=draft; does not appear publicly until Publish. Response is the complete flat resource, not wrapped. publishedAt is null on restoration.
       parameters:
-      - $ref: '#/components/parameters/BannerId'
+        - $ref: "#/components/parameters/BannerId"
       responses:
-        '200':
+        "200":
           description: Complete, flat banner restored as active draft (status=draft, publishedAt=null).
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/HeroBanner'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
+                $ref: "#/components/schemas/HeroBanner"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
       x-design-status: proposed
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/RestoreRequest'
+              $ref: "#/components/schemas/RestoreRequest"
     delete:
       tags:
-      - CMS Hero Banners
+        - CMS Hero Banners
       operationId: deactivateBanner
       summary: Deactivate hero banner
       parameters:
-      - $ref: '#/components/parameters/BannerId'
+        - $ref: "#/components/parameters/BannerId"
       responses:
-        '200':
+        "200":
           description: Banner inactive; if this was the displayed banner the homepage has none
           content:
             application/json:
@@ -1095,44 +1112,44 @@ paths:
                     type: boolean
                     const: true
                 required:
-                - success
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
+                  - success
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
       x-design-status: proposed
       description: Deactivation sets isActive=false, status=null, publishedAt=null.
   /api/cms/media:
     get:
       tags:
-      - CMS Media
+        - CMS Media
       operationId: listMedia
       summary: Browse Media Library
       parameters:
-      - $ref: '#/components/parameters/Page'
-      - $ref: '#/components/parameters/Limit'
-      - name: mediaType
-        in: query
-        schema:
-          type: string
-          enum:
-          - image
-          - video
-          - audio
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/Limit"
+        - name: mediaType
+          in: query
+          schema:
+            type: string
+            enum:
+              - image
+              - video
+              - audio
       responses:
-        '200':
+        "200":
           description: Success
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PageMedia'
-        '400':
-          $ref: '#/components/responses/BadRequest'
+                $ref: "#/components/schemas/PageMedia"
+        "400":
+          $ref: "#/components/responses/BadRequest"
       x-design-status: proposed
-      description: ' Pagination uses optional limit (default=10, clamp to [5,100]) and 1-based page (default=1). Empty list returns HTTP 200 with an empty array.'
+      description: " Pagination uses optional limit (default=10, clamp to [5,100]) and 1-based page (default=1). Empty list returns HTTP 200 with an empty array."
     post:
       tags:
-      - CMS Media
+        - CMS Media
       operationId: createMedia
       summary: Register media by externally hosted URL
       description: User enters an already-hosted media URL and metadata in Add New Media. Backend stores its reference/metadata, not binary media. File provider is chosen separately.
@@ -1141,47 +1158,47 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/MediaInput'
+              $ref: "#/components/schemas/MediaInput"
       responses:
-        '201':
+        "201":
           description: Media reference registered
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Media'
-        '400':
-          $ref: '#/components/responses/BadRequest'
+                $ref: "#/components/schemas/Media"
+        "400":
+          $ref: "#/components/responses/BadRequest"
       x-design-status: proposed
   /api/cms/media/{id}:
     get:
       tags:
-      - CMS Media
+        - CMS Media
       operationId: getMedia
       summary: Get media metadata
       parameters:
-      - $ref: '#/components/parameters/MediaId'
+        - $ref: "#/components/parameters/MediaId"
       responses:
-        '200':
+        "200":
           description: Success
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Media'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
+                $ref: "#/components/schemas/Media"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
       x-design-status: proposed
     delete:
       tags:
-      - CMS Media
+        - CMS Media
       operationId: deleteMedia
       summary: Delete unreferenced media
       description: Must reject deletion if media is referenced by any content, including drafts and inactive content, pending precise reference policy. Storage deletion semantics to discuss.
       parameters:
-      - $ref: '#/components/parameters/MediaId'
+        - $ref: "#/components/parameters/MediaId"
       responses:
-        '200':
+        "200":
           description: Media deleted
           content:
             application/json:
@@ -1192,112 +1209,112 @@ paths:
                     type: boolean
                     const: true
                 required:
-                - success
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
+                  - success
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
       x-design-status: proposed
   /api/public/articles:
     get:
       tags:
-      - Public Content
+        - Public Content
       operationId: listPublicArticles
       summary: List public homepage article cards, newest published first
       description: Returns only active published articles and their separately authored previews, ordered by publication date descending (newest first). When categoryId is omitted, articles from all categories are returned. When categoryId is supplied, the backend filters to that category before paginating. The limit request / pageSize response convention applies. Pagination uses optional limit (default=10, clamp to [5,100]) and 1-based page (default=1). Empty list returns HTTP 200 with an empty array.
       parameters:
-      - $ref: '#/components/parameters/Page'
-      - $ref: '#/components/parameters/Limit'
-      - name: categoryId
-        in: query
-        schema:
-          type: integer
-          description: Numeric category ID; -1 is the protected Unknown category.
-        description: Optional category filter. Omit entirely to show all categories on the homepage.
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/Limit"
+        - name: categoryId
+          in: query
+          schema:
+            type: integer
+            description: Numeric category ID; -1 is the protected Unknown category.
+          description: Optional category filter. Omit entirely to show all categories on the homepage.
       responses:
-        '200':
+        "200":
           description: Paginated cards sorted by newest publication date first
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PagePublicArticleCards'
-        '400':
-          $ref: '#/components/responses/BadRequest'
+                $ref: "#/components/schemas/PagePublicArticleCards"
+        "400":
+          $ref: "#/components/responses/BadRequest"
       x-design-status: proposed
   /api/public/articles/{id}:
     get:
       tags:
-      - Public Content
+        - Public Content
       operationId: getPublicArticle
       summary: Get an active published article by stable ID
       description: The public React Router URL is `/articles/{id}-{slug}` (e.g., `/articles/12-my-article`). React extracts the ID and requests `/api/public/articles/{id}`. Returns 404 for draft, inactive, or missing articles. The returned article includes its full content and main image reference. Article slug changes do not create server redirects. Handling outdated slugs in the React URL is intentionally left for mentor review.
       parameters:
-      - $ref: '#/components/parameters/ArticleId'
+        - $ref: "#/components/parameters/ArticleId"
       responses:
-        '200':
+        "200":
           description: Success
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PublicArticleDetail'
-        '404':
-          $ref: '#/components/responses/NotFound'
+                $ref: "#/components/schemas/PublicArticleDetail"
+        "404":
+          $ref: "#/components/responses/NotFound"
       x-design-status: proposed
   /api/public/categories:
     get:
       tags:
-      - Public Content
+        - Public Content
       operationId: listPublicCategories
       summary: List public category labels
       responses:
-        '200':
+        "200":
           description: Categories
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Category'
-        '400':
-          $ref: '#/components/responses/BadRequest'
+                  $ref: "#/components/schemas/Category"
+        "400":
+          $ref: "#/components/responses/BadRequest"
       x-design-status: proposed
       description: Read-only category labels/IDs for homepage category filter navigation. The About the Author page is static React content.
   /api/public/hero-banner:
     get:
       tags:
-      - Public Content
+        - Public Content
       operationId: getPublicBanner
       summary: Get current visible banner or no banner
       description: Returns the active published HeroBanner object directly (without a banner wrapper). If no active published banner exists, returns HTTP 200 with JSON null.
       responses:
-        '200':
+        "200":
           description: Active published hero banner directly, or JSON null if none is displayed.
           content:
             application/json:
               schema:
                 oneOf:
-                - $ref: '#/components/schemas/HeroBanner'
-                - type: 'null'
-        '400':
-          $ref: '#/components/responses/BadRequest'
+                  - $ref: "#/components/schemas/HeroBanner"
+                  - type: "null"
+        "400":
+          $ref: "#/components/responses/BadRequest"
       x-design-status: proposed
   /api/public/media/{id}:
     get:
       tags:
-      - Public Content
+        - Public Content
       operationId: getPublicMedia
       summary: Get public media URL and metadata by ID
       description: Return JSON metadata including the URL of the external provider; do not stream binary file content. Missing or inaccessible media yields 404.
       parameters:
-      - $ref: '#/components/parameters/MediaId'
+        - $ref: "#/components/parameters/MediaId"
       responses:
-        '200':
+        "200":
           description: Success
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Media'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
+                $ref: "#/components/schemas/Media"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
